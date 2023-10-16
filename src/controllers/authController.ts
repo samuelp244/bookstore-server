@@ -19,6 +19,7 @@ const loginUser = async (req: Request, res: Response) => {
       const payload = {
         username: userDetails.username,
         role: userDetails.role,
+        userId: userDetails._id,
       };
       const accessToken = jwt.sign(payload, accessTokenSecret, {
         expiresIn: "15m",
@@ -87,6 +88,7 @@ const renewAccessToken = async (req: Request, res: Response) => {
     const payload = {
       username: userDetails.username,
       role: userDetails.role,
+      userId: userDetails._id,
     };
     const accessToken = jwt.sign(payload, accessTokenSecret, {
       expiresIn: "15m",
