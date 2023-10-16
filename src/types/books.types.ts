@@ -11,4 +11,5 @@ export interface BookType {
   text_reviews_count: string;
   publication_date: string;
   publisher: string;
+  price: string;
 }
