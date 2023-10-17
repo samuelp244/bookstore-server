@@ -1,1 +1,1 @@
-export { authenticate, CustomRequest } from "./authenticate";
+export { authenticate, CustomRequest } from './authenticate';

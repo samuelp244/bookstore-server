@@ -1,25 +1,25 @@
-import fs from "fs";
-import csvParser from "csv-parser";
-import { BookType } from "../types/books.types";
+import fs from 'fs';
+import csvParser from 'csv-parser';
+import { BookType } from '../types/books.types';
 
 const csvData: BookType[] = [];
 
 export function loadBooksCSVData(): Promise<BookType[]> {
-  return new Promise((resolve, reject) => {
-    fs.createReadStream("./src/data/books.csv")
-      .pipe(csvParser())
-      .on("data", (row) => {
-        csvData.push(row);
-      })
-      .on("end", () => {
-        console.log("CSV data loaded successfully.");
-        resolve(csvData);
-      })
-      .on("error", (error) => {
-        console.error("Error loading CSV data:", error);
-        reject(error);
-      });
-  });
+	return new Promise((resolve, reject) => {
+		fs.createReadStream('./src/data/books.csv')
+			.pipe(csvParser())
+			.on('data', (row) => {
+				csvData.push(row);
+			})
+			.on('end', () => {
+				console.log('CSV data loaded successfully.');
+				resolve(csvData);
+			})
+			.on('error', (error) => {
+				console.error('Error loading CSV data:', error);
+				reject(error);
+			});
+	});
 }
 
 export default loadBooksCSVData;
