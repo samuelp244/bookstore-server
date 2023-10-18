@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import { UserBooks } from '../models';
+import { BookType } from '../types/books.types';
 import { type authPayload } from '../types/miscellaneous.types';
 import loadBooksCSVData from '../utils/loadBooksCSVData';
 
@@ -93,34 +94,38 @@ const getAllBooksList = async (req: Request, res: Response) => {
 		const { limit, page, searchQuery, sortBy } = req.query;
 		const parsedLimit = parseInt(limit as string, 10);
 		const parsedPage = parseInt(page as string, 10);
+
 		if (isNaN(parsedLimit) || isNaN(parsedPage)) {
 			return res
 				.status(400)
 				.json({ message: 'Invalid limit or page parameter' });
 		}
+
 		let allBooks = await loadBooksCSVData();
-		if (sortBy) {
+
+		if (sortBy !== undefined) {
 			if (sortBy === 'ratings' || sortBy === 'release') {
-				allBooks.sort((a, b) => {
+				const sortedBooks = [...allBooks];
+				sortedBooks.sort((a, b) => {
 					if (sortBy === 'ratings') {
-						return parseFloat(b.average_rating) - parseFloat(a.average_rating);
+						const ratingA = parseFloat(a.average_rating) || 0;
+						const ratingB = parseFloat(b.average_rating) || 0;
+						return ratingB - ratingA;
 					} else if (sortBy === 'release') {
-						const dateA: Date = new Date(a.publication_date);
-						const dateB: Date = new Date(b.publication_date);
-						return dateB.getTime() - dateA.getTime();
-					} else {
-						return 0;
+						const dateA = new Date(a.publication_date).getTime() || 0;
+						const dateB = new Date(b.publication_date).getTime() || 0;
+						return dateB - dateA;
 					}
+					return 0;
 				});
+				allBooks = sortedBooks;
 			} else {
 				return res.status(400).json({ message: 'Invalid sort parameter' });
 			}
 		}
 
-		const skip = (parsedPage - 1) * parsedLimit;
 		if (searchQuery !== undefined && searchQuery !== '') {
 			const lowercaseSearchQuery = (searchQuery as string).toLowerCase();
-
 			allBooks = allBooks.filter((book) => {
 				const { title, authors, publisher } = book;
 				return (
@@ -130,15 +135,29 @@ const getAllBooksList = async (req: Request, res: Response) => {
 				);
 			});
 		}
+
+		const skip = (parsedPage - 1) * parsedLimit;
 		const startIndex = skip;
 		const endIndex = startIndex + parsedLimit;
+
+		const uniqueBookIDs = new Set();
+		allBooks = allBooks.filter((book) => {
+			if (!uniqueBookIDs.has(book.bookID)) {
+				uniqueBookIDs.add(book.bookID);
+				return true;
+			}
+			return false;
+		});
+
 		const booksForPage = allBooks.slice(startIndex, endIndex);
-		res
-			.status(200)
-			.json({ message: 'successfully fetched books', books: booksForPage });
+
+		return res.status(200).json({
+			message: 'successfully fetched books',
+			books: booksForPage,
+		});
 	} catch (err) {
 		console.error(err);
-		res.status(500).send('Internal Server Error');
+		return res.status(500).send('Internal Server Error');
 	}
 };
 

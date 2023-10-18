@@ -10,12 +10,21 @@ const port = process.env.PORT;
 const app: Express = express();
 
 mongoose.connect(mongodbURI);
-
+const corsOptions = {
+	origin: 'http://localhost:3000',
+	credentials: true,
+};
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
+app.all('/', function (req, res, next) {
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+	next();
+});
+
+app.get('/api', (req, res) => {
 	res.send('Welcome to bookstore server');
 });
 

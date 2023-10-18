@@ -4,7 +4,7 @@ import { authenticate } from '../middleware';
 
 const router = express.Router();
 
-router.get('/api/books/list', authenticate, booksController.getAllBooksList);
+router.get('/api/books/list', booksController.getAllBooksList);
 
 router.get('/api/books/user/list', authenticate, booksController.getUserBooks);
 

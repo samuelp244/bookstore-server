@@ -6,7 +6,12 @@ import { authPayload } from '../types/miscellaneous.types';
 
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET ?? '';
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET ?? '';
-
+const cookieProperties = {
+	path: '/',
+	sameSite: false,
+	httpOnly: true,
+	domain: 'localhost',
+};
 const loginUser = async (req: Request, res: Response) => {
 	try {
 		const { username, password } = req.body;
@@ -28,7 +33,7 @@ const loginUser = async (req: Request, res: Response) => {
 				expiresIn: '7d',
 			});
 
-			res.cookie('refresh_token', refreshToken, { httpOnly: true });
+			res.cookie('refresh_token', refreshToken, cookieProperties);
 			res.status(200).json({ message: 'Login successful', accessToken });
 		} else {
 			res.status(401).json({ message: 'Invalid username or password' });
