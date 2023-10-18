@@ -34,7 +34,9 @@ const loginUser = async (req: Request, res: Response) => {
 			});
 
 			res.cookie('refresh_token', refreshToken, cookieProperties);
-			res.status(200).json({ message: 'Login successful', accessToken });
+			res
+				.status(200)
+				.json({ message: 'Login successful', accessToken, userDetails });
 		} else {
 			res.status(403).json({ message: 'Invalid username or password' });
 		}
@@ -80,7 +82,11 @@ const registerUser = async (req: Request, res: Response) => {
 		res.cookie('refresh_token', refreshToken, cookieProperties);
 		res
 			.status(201)
-			.json({ message: 'User registered successfully', accessToken });
+			.json({
+				message: 'User registered successfully',
+				accessToken,
+				userDetails: payload,
+			});
 	} catch (err) {
 		console.error(err);
 		res.status(500).send('Internal Server Error');
