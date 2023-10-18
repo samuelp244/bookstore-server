@@ -6,12 +6,13 @@ import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 
 const mongodbURI = process.env.MONGO_URI ?? '';
+const frontendUrl = process.env.FRONT_END_URL ?? '';
 const port = process.env.PORT;
 const app: Express = express();
 
 mongoose.connect(mongodbURI);
 const corsOptions = {
-	origin: ['http://localhost:3000', process.env.FRONT_END_URL],
+	origin: ['http://localhost:3000', frontendUrl],
 	credentials: true,
 };
 app.use(express.json());
