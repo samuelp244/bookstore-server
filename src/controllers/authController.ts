@@ -10,7 +10,7 @@ const cookieProperties = {
 	path: '/',
 	sameSite: false,
 	httpOnly: true,
-	domain: 'localhost',
+	// domain: 'localhost',
 };
 const loginUser = async (req: Request, res: Response) => {
 	try {
@@ -36,7 +36,7 @@ const loginUser = async (req: Request, res: Response) => {
 			res.cookie('refresh_token', refreshToken, cookieProperties);
 			res.status(200).json({ message: 'Login successful', accessToken });
 		} else {
-			res.status(401).json({ message: 'Invalid username or password' });
+			res.status(403).json({ message: 'Invalid username or password' });
 		}
 	} catch (err) {
 		console.error(err);
@@ -65,8 +65,22 @@ const registerUser = async (req: Request, res: Response) => {
 		});
 
 		await newUser.save();
+		const payload = {
+			username: newUser.username,
+			role: newUser.role,
+			userId: newUser._id,
+		};
+		const accessToken = jwt.sign(payload, accessTokenSecret, {
+			expiresIn: '15m',
+		});
+		const refreshToken = jwt.sign(payload, refreshTokenSecret, {
+			expiresIn: '7d',
+		});
 
-		res.status(201).json({ message: 'User registered successfully' });
+		res.cookie('refresh_token', refreshToken, cookieProperties);
+		res
+			.status(201)
+			.json({ message: 'User registered successfully', accessToken });
 	} catch (err) {
 		console.error(err);
 		res.status(500).send('Internal Server Error');
@@ -106,4 +120,20 @@ const renewAccessToken = async (req: Request, res: Response) => {
 	}
 };
 
-export const authController = { loginUser, registerUser, renewAccessToken };
+const signOut = (req: Request, res: Response) => {
+	try {
+		res.clearCookie('refresh_token', cookieProperties);
+
+		res.status(200).json({ message: 'Signout successful' });
+	} catch (err) {
+		console.error(err);
+		res.status(500).send('Internal Server Error');
+	}
+};
+
+export const authController = {
+	loginUser,
+	registerUser,
+	renewAccessToken,
+	signOut,
+};

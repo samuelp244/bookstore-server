@@ -12,7 +12,6 @@ export function loadBooksCSVData(): Promise<BookType[]> {
 				csvData.push(row);
 			})
 			.on('end', () => {
-				console.log('CSV data loaded successfully.');
 				resolve(csvData);
 			})
 			.on('error', (error) => {

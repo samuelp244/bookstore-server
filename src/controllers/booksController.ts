@@ -88,43 +88,63 @@ const deleteUserBook = async (routerReq: Request, res: Response) => {
 		res.status(500).send('Internal Server Error');
 	}
 };
+let allBooksCache: BookType[] | null = null;
+
+const loadAllBooks = async () => {
+	// Load books from the source (e.g., loadBooksCSVData) and store them in allBooksCache.
+	allBooksCache = await loadBooksCSVData();
+};
 
 const getAllBooksList = async (req: Request, res: Response) => {
 	try {
 		const { limit, page, searchQuery, sortBy } = req.query;
 		const parsedLimit = parseInt(limit as string, 10);
 		const parsedPage = parseInt(page as string, 10);
-
 		if (isNaN(parsedLimit) || isNaN(parsedPage)) {
 			return res
 				.status(400)
 				.json({ message: 'Invalid limit or page parameter' });
 		}
 
-		let allBooks = await loadBooksCSVData();
-
-		if (sortBy !== undefined) {
-			if (sortBy === 'ratings' || sortBy === 'release') {
-				const sortedBooks = [...allBooks];
-				sortedBooks.sort((a, b) => {
-					if (sortBy === 'ratings') {
-						const ratingA = parseFloat(a.average_rating) || 0;
-						const ratingB = parseFloat(b.average_rating) || 0;
-						return ratingB - ratingA;
-					} else if (sortBy === 'release') {
-						const dateA = new Date(a.publication_date).getTime() || 0;
-						const dateB = new Date(b.publication_date).getTime() || 0;
-						return dateB - dateA;
-					}
-					return 0;
-				});
-				allBooks = sortedBooks;
-			} else {
-				return res.status(400).json({ message: 'Invalid sort parameter' });
-			}
+		if (allBooksCache === null) {
+			// If allBooksCache is not yet loaded, load the data.
+			await loadAllBooks();
 		}
 
-		if (searchQuery !== undefined && searchQuery !== '') {
+		if (allBooksCache === null) {
+			return res.status(500).json({ message: 'Failed to load books data' });
+		}
+
+		let allBooks = [...allBooksCache]; // Create a copy to avoid mutating the cache.
+
+		if (sortBy === 'ratings' || sortBy === 'release') {
+			allBooks.sort((a, b) => {
+				if (sortBy === 'ratings') {
+					return (
+						(parseFloat(b.average_rating) || 0) -
+						(parseFloat(a.average_rating) || 0)
+					);
+				} else {
+					return (
+						(new Date(b.publication_date).getTime() || 0) -
+						(new Date(a.publication_date).getTime() || 0)
+					);
+				}
+			});
+
+			const uniqueBookIDs = new Set();
+			allBooks = allBooks.filter((book) => {
+				if (!uniqueBookIDs.has(book.bookID)) {
+					uniqueBookIDs.add(book.bookID);
+					return true;
+				}
+				return false;
+			});
+		} else if (sortBy !== undefined) {
+			return res.status(400).json({ message: 'Invalid sort parameter' });
+		}
+
+		if (searchQuery !== 'undefined' && searchQuery !== undefined) {
 			const lowercaseSearchQuery = (searchQuery as string).toLowerCase();
 			allBooks = allBooks.filter((book) => {
 				const { title, authors, publisher } = book;
@@ -140,19 +160,10 @@ const getAllBooksList = async (req: Request, res: Response) => {
 		const startIndex = skip;
 		const endIndex = startIndex + parsedLimit;
 
-		const uniqueBookIDs = new Set();
-		allBooks = allBooks.filter((book) => {
-			if (!uniqueBookIDs.has(book.bookID)) {
-				uniqueBookIDs.add(book.bookID);
-				return true;
-			}
-			return false;
-		});
-
 		const booksForPage = allBooks.slice(startIndex, endIndex);
 
 		return res.status(200).json({
-			message: 'successfully fetched books',
+			message: 'Successfully fetched books',
 			books: booksForPage,
 		});
 	} catch (err) {

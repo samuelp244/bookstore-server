@@ -9,4 +9,6 @@ router.post('/api/auth/login', authController.loginUser);
 
 router.get('/api/auth/renewaccesstoken', authController.renewAccessToken);
 
+router.post('/api/auth/signout', authController.signOut);
+
 export { router as authRouter };
