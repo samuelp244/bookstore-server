@@ -12,6 +12,12 @@ const cookieProperties = {
 	httpOnly: true,
 	// domain: 'localhost',
 };
+
+/**
+ * Handles user login by validating credentials and returning access and refresh tokens.
+ * @param req - The request object containing user credentials.
+ * @param res - The response object to send the HTTP response.
+ */
 const loginUser = async (req: Request, res: Response) => {
 	try {
 		const { username, password } = req.body;
@@ -46,6 +52,11 @@ const loginUser = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Registers a new user, hashing their password, and returning access and refresh tokens.
+ * @param req - The request object containing user registration data.
+ * @param res - The response object to send the HTTP response.
+ */
 const registerUser = async (req: Request, res: Response) => {
 	try {
 		const { username, email, password } = req.body;
@@ -80,19 +91,22 @@ const registerUser = async (req: Request, res: Response) => {
 		});
 
 		res.cookie('refresh_token', refreshToken, cookieProperties);
-		res
-			.status(201)
-			.json({
-				message: 'User registered successfully',
-				accessToken,
-				userDetails: payload,
-			});
+		res.status(201).json({
+			message: 'User registered successfully',
+			accessToken,
+			userDetails: payload,
+		});
 	} catch (err) {
 		console.error(err);
 		res.status(500).send('Internal Server Error');
 	}
 };
 
+/**
+ * Renews the access token using a valid refresh token.
+ * @param req - The request object containing the refresh token.
+ * @param res - The response object to send the HTTP response.
+ */
 const renewAccessToken = async (req: Request, res: Response) => {
 	const refreshToken = req.cookies.refresh_token;
 
@@ -126,6 +140,11 @@ const renewAccessToken = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Clears the refresh token cookie to sign the user out.
+ * @param req - The request object.
+ * @param res - The response object to send the HTTP response.
+ */
 const signOut = (req: Request, res: Response) => {
 	try {
 		res.clearCookie('refresh_token', cookieProperties);

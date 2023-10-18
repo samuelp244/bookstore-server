@@ -8,6 +8,12 @@ interface CustomRequest extends Request {
 	token: authPayload;
 }
 
+/**
+ * Adds a book or multiple books to the user's collection.
+ * If the user's collection doesn't exist, it creates one.
+ * @param routerReq - The request object containing user data.
+ * @param res - The response object to send the HTTP response.
+ */
 const addBook = async (routerReq: Request, res: Response) => {
 	try {
 		const req = routerReq as CustomRequest;
@@ -30,6 +36,11 @@ const addBook = async (routerReq: Request, res: Response) => {
 	}
 };
 
+/**
+ * Retrieves the list of books from the user's collection.
+ * @param routerReq - The request object containing user data.
+ * @param res - The response object to send the HTTP response.
+ */
 const getUserBooks = async (routerReq: Request, res: Response) => {
 	try {
 		const req = routerReq as CustomRequest;
@@ -45,13 +56,18 @@ const getUserBooks = async (routerReq: Request, res: Response) => {
 		const books = userBooks.books;
 		return res
 			.status(200)
-			.json({ message: 'books successfully fetched for user', books });
+			.json({ message: 'Books successfully fetched for user', books });
 	} catch (err) {
 		console.error(err);
 		res.status(500).send('Internal Server Error');
 	}
 };
 
+/**
+ * Deletes a book from the user's collection based on the book's ID.
+ * @param routerReq - The request object containing user data and the book ID.
+ * @param res - The response object to send the HTTP response.
+ */
 const deleteUserBook = async (routerReq: Request, res: Response) => {
 	try {
 		const req = routerReq as CustomRequest;
@@ -88,13 +104,22 @@ const deleteUserBook = async (routerReq: Request, res: Response) => {
 		res.status(500).send('Internal Server Error');
 	}
 };
+
 let allBooksCache: BookType[] | null = null;
 
+/**
+ * Loads all books data into the cache from an external source.
+ */
 const loadAllBooks = async () => {
 	// Load books from the source (e.g., loadBooksCSVData) and store them in allBooksCache.
 	allBooksCache = await loadBooksCSVData();
 };
 
+/**
+ * Retrieves a list of all books with optional filters.
+ * @param req - The request object containing filters for the book list.
+ * @param res - The response object to send the HTTP response.
+ */
 const getAllBooksList = async (req: Request, res: Response) => {
 	try {
 		const { limit, page, searchQuery, sortBy } = req.query;
@@ -107,7 +132,6 @@ const getAllBooksList = async (req: Request, res: Response) => {
 		}
 
 		if (allBooksCache === null) {
-			// If allBooksCache is not yet loaded, load the data.
 			await loadAllBooks();
 		}
 
