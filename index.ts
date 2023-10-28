@@ -1,7 +1,7 @@
 import express, { Express } from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import { authRouter, booksDataRouter } from './src/routes';
+import { authRouter, booksDataRouter, tasksDataRouter } from './src/routes';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 
@@ -41,6 +41,8 @@ app.get('/api', (req, res) => {
 // Mount your route handlers for authentication and book data
 app.use(authRouter);
 app.use(booksDataRouter);
+
+app.use(tasksDataRouter);
 
 // Define a catch-all route for handling 404 errors
 app.use((req, res, next) => {
