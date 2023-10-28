@@ -18,11 +18,9 @@ const addTask = async (routerReq: Request, res: Response) => {
 			userTasks = new UserTasks({ userId: payload.userId, tasks: [] });
 		}
 		if (status !== 'pending' && status !== 'completed') {
-			return res
-				.status(400)
-				.json({
-					message: 'Invalid status. Status must be "pending" or "completed".',
-				});
+			return res.status(400).json({
+				message: 'Invalid status. Status must be "pending" or "completed".',
+			});
 		}
 		const newTask = {
 			taskId: new mongoose.Types.ObjectId(),
@@ -82,7 +80,7 @@ const deleteUserTask = async (routerReq: Request, res: Response) => {
 
 		if (taskIndex === -1) {
 			return res
-				.status(204)
+				.status(404)
 				.json({ message: 'task not found in the user collection' });
 		}
 		const newTasksList = userTasks.tasks.filter(
